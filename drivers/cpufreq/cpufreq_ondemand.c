@@ -837,16 +837,15 @@ static void dbs_refresh_callback(struct work_struct *unused)
 	struct cpu_dbs_info_s *this_dbs_info;
 	unsigned int cpu = smp_processor_id();
 
-	get_online_cpus();
-
 	if (lock_policy_rwsem_write(cpu) < 0)
-		goto bail_acq_sema_failed;
+		return;
 
 	this_dbs_info = &per_cpu(od_cpu_dbs_info, cpu);
 	policy = this_dbs_info->cur_policy;
 	if (!policy) {
 		/* CPU not using ondemand governor */
-		goto bail_incorrect_governor;
+		unlock_policy_rwsem_write(cpu);
+		return;
 	}
 
 	if (policy->cur < policy->max) {
@@ -861,13 +860,7 @@ static void dbs_refresh_callback(struct work_struct *unused)
 		this_dbs_info->prev_cpu_idle = get_cpu_idle_time(cpu,
 				&this_dbs_info->prev_cpu_wall);
 	}
-
-bail_incorrect_governor:
 	unlock_policy_rwsem_write(cpu);
-
-bail_acq_sema_failed:
-	put_online_cpus();
-	return;
 }
 
 static void dbs_input_event(struct input_handle *handle, unsigned int type,
