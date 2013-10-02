@@ -135,7 +135,7 @@ static void lm3530_backlight_on(struct i2c_client *client, int level)
 
 	mutex_lock(&backlight_mtx);
 	if (backlight_status == BL_OFF) {
-		pr_info("%s, ++ lm3530_backlight_on  \n",__func__);
+		pr_info("%s, ++ lm3530_backlight_on\n", __func__);
 		lm3530_hw_reset(client);
 
 		lm3530_write_reg(dev->client, 0xA0, 0x00);
@@ -394,7 +394,7 @@ DEVICE_ATTR(lm3530_br_mode, 0644, lcd_show_br_mode, lcd_store_br_mode);
 DEVICE_ATTR(lm3530_min_br, 0644, lcd_show_min_br, lcd_store_min_br);
 DEVICE_ATTR(lm3530_max_br, 0644, lcd_show_max_br, lcd_store_max_br);
 
-static struct backlight_ops lm3530_bl_ops = {
+static const struct backlight_ops lm3530_bl_ops = {
 	.update_status = bl_set_intensity,
 	.get_brightness = bl_get_intensity,
 };
