@@ -33,14 +33,13 @@
 #define MSM_AMP_EN (PM8921_GPIO_PM_TO_SYS(19))
 #define AGC_COMPRESIION_RATE        0
 #define AGC_OUTPUT_LIMITER_DISABLE  1
-/* AGC_FIXED_GAIN  on the amp datasheet default value is 6 */
 #define AGC_FIXED_GAIN              15
-/* AKT_TIME on the amp datasheet default value is 5 */
-#define AKT_TIME					6
-/* REL_TIME on the amp datasheet default value is 11 */
-#define REL_TIME					13
-#define MAX_GAIN					12
-
+#define AGC_ATK_TIME			6
+#define AGC_REL_TIME			13
+#define AGC_HOLD_TIME			0
+#define AGC_OUTPUT_LIMIT_LEVEL		26
+#define AGC_MAX_GAIN			12
+#define AGC_NOISE_GATE_THRESHOLD	1
 
 #define GPIO_EAR_MIC_BIAS_EN        PM8921_GPIO_PM_TO_SYS(20)
 #define GPIO_EAR_SENSE_N            82
@@ -81,14 +80,14 @@ int amp_enable(int on_state)
 	switch (on_state) {
 	case 0:
 		err = gpio_direction_output(MSM_AMP_EN, 0);
-		printk(KERN_INFO "%s: AMP_EN is set to 0\n", __func__);
+		//printk(KERN_INFO "%s: AMP_EN is set to 0\n", __func__);
 		break;
 	case 1:
 		err = gpio_direction_output(MSM_AMP_EN, 1);
-		printk(KERN_INFO "%s: AMP_EN is set to 1\n", __func__);
+		//printk(KERN_INFO "%s: AMP_EN is set to 1\n", __func__);
 		break;
 	case 2:
-		printk(KERN_INFO "%s: amp enable bypass(%d)\n", __func__, on_state);
+		//printk(KERN_INFO "%s: amp enable bypass(%d)\n", __func__, on_state);
 		err = 0;
 		break;
 
@@ -105,9 +104,12 @@ static struct audio_amp_platform_data amp_platform_data =  {
 	.agc_compression_rate = AGC_COMPRESIION_RATE,
 	.agc_output_limiter_disable = AGC_OUTPUT_LIMITER_DISABLE,
 	.agc_fixed_gain = AGC_FIXED_GAIN,
-	.atk_time = AKT_TIME,
-	.rel_time = REL_TIME,
-	.max_gain = MAX_GAIN,
+	.ATK_time = AGC_ATK_TIME,
+	.REL_time = AGC_REL_TIME,
+	.Hold_time = AGC_HOLD_TIME,
+	.Output_limit_level = AGC_OUTPUT_LIMIT_LEVEL,
+	.Noise_Gate_Threshold = AGC_NOISE_GATE_THRESHOLD,
+	.AGC_Max_Gain = AGC_MAX_GAIN,
 };
 #endif
 
