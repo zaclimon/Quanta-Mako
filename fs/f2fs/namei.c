@@ -23,7 +23,7 @@
 
 static struct inode *f2fs_new_inode(struct inode *dir, umode_t mode)
 {
-	struct f2fs_sb_info *sbi = F2FS_SB(dir->i_sb);
+	struct f2fs_sb_info *sbi = F2FS_I_SB(dir);
 	nid_t ino;
 	struct inode *inode;
 	bool nid_free = false;
@@ -102,7 +102,7 @@ static inline void set_cold_files(struct f2fs_sb_info *sbi, struct inode *inode,
 static int f2fs_create(struct inode *dir, struct dentry *dentry, umode_t mode,
 		       struct nameidata *nd)
 {
-	struct f2fs_sb_info *sbi = F2FS_SB(dir->i_sb);
+	struct f2fs_sb_info *sbi = F2FS_I_SB(dir);
 	struct inode *inode;
 	nid_t ino = 0;
 	int err;
@@ -134,9 +134,7 @@ static int f2fs_create(struct inode *dir, struct dentry *dentry, umode_t mode,
 	return 0;
 out:
 	clear_nlink(inode);
-	unlock_new_inode(inode);
-	make_bad_inode(inode);
-	iput(inode);
+	iget_failed(inode);
 	alloc_nid_failed(sbi, ino);
 	return err;
 }
@@ -145,7 +143,7 @@ static int f2fs_link(struct dentry *old_dentry, struct inode *dir,
 		struct dentry *dentry)
 {
 	struct inode *inode = old_dentry->d_inode;
-	struct f2fs_sb_info *sbi = F2FS_SB(dir->i_sb);
+	struct f2fs_sb_info *sbi = F2FS_I_SB(dir);
 	int err;
 
 	f2fs_balance_fs(sbi);
@@ -205,7 +203,7 @@ static struct dentry *f2fs_lookup(struct inode *dir, struct dentry *dentry,
 
 static int f2fs_unlink(struct inode *dir, struct dentry *dentry)
 {
-	struct f2fs_sb_info *sbi = F2FS_SB(dir->i_sb);
+	struct f2fs_sb_info *sbi = F2FS_I_SB(dir);
 	struct inode *inode = dentry->d_inode;
 	struct f2fs_dir_entry *de;
 	struct page *page;
@@ -239,7 +237,7 @@ fail:
 static int f2fs_symlink(struct inode *dir, struct dentry *dentry,
 					const char *symname)
 {
-	struct f2fs_sb_info *sbi = F2FS_SB(dir->i_sb);
+	struct f2fs_sb_info *sbi = F2FS_I_SB(dir);
 	struct inode *inode;
 	size_t symlen = strlen(symname) + 1;
 	int err;
@@ -267,16 +265,14 @@ static int f2fs_symlink(struct inode *dir, struct dentry *dentry,
 	return err;
 out:
 	clear_nlink(inode);
-	unlock_new_inode(inode);
-	make_bad_inode(inode);
-	iput(inode);
+	iget_failed(inode);
 	alloc_nid_failed(sbi, inode->i_ino);
 	return err;
 }
 
 static int f2fs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
 {
-	struct f2fs_sb_info *sbi = F2FS_SB(dir->i_sb);
+	struct f2fs_sb_info *sbi = F2FS_I_SB(dir);
 	struct inode *inode;
 	int err;
 
@@ -308,9 +304,7 @@ static int f2fs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
 out_fail:
 	clear_inode_flag(F2FS_I(inode), FI_INC_LINK);
 	clear_nlink(inode);
-	unlock_new_inode(inode);
-	make_bad_inode(inode);
-	iput(inode);
+	iget_failed(inode);
 	alloc_nid_failed(sbi, inode->i_ino);
 	return err;
 }
@@ -326,7 +320,7 @@ static int f2fs_rmdir(struct inode *dir, struct dentry *dentry)
 static int f2fs_mknod(struct inode *dir, struct dentry *dentry,
 				umode_t mode, dev_t rdev)
 {
-	struct f2fs_sb_info *sbi = F2FS_SB(dir->i_sb);
+	struct f2fs_sb_info *sbi = F2FS_I_SB(dir);
 	struct inode *inode;
 	int err = 0;
 
@@ -354,9 +348,7 @@ static int f2fs_mknod(struct inode *dir, struct dentry *dentry,
 	return 0;
 out:
 	clear_nlink(inode);
-	unlock_new_inode(inode);
-	make_bad_inode(inode);
-	iput(inode);
+	iget_failed(inode);
 	alloc_nid_failed(sbi, inode->i_ino);
 	return err;
 }
@@ -364,7 +356,7 @@ out:
 static int f2fs_rename(struct inode *old_dir, struct dentry *old_dentry,
 			struct inode *new_dir, struct dentry *new_dentry)
 {
-	struct f2fs_sb_info *sbi = F2FS_SB(old_dir->i_sb);
+	struct f2fs_sb_info *sbi = F2FS_I_SB(old_dir);
 	struct inode *old_inode = old_dentry->d_inode;
 	struct inode *new_inode = new_dentry->d_inode;
 	struct page *old_dir_page;
