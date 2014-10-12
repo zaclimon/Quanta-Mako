@@ -85,7 +85,7 @@ static struct bio *__bio_alloc(struct f2fs_sb_info *sbi, block_t blk_addr,
 	bio = bio_alloc(GFP_NOIO, npages);
 
 	bio->bi_bdev = sbi->sb->s_bdev;
-	bio->bi_sector = SECTOR_FROM_BLOCK(sbi, blk_addr);
+	bio->bi_sector = SECTOR_FROM_BLOCK(blk_addr);
 	bio->bi_end_io = is_read ? f2fs_read_end_io : f2fs_write_end_io;
 	bio->bi_private = sbi;
 
@@ -193,7 +193,7 @@ void f2fs_submit_page_mbio(struct f2fs_sb_info *sbi, struct page *page,
 		__submit_merged_bio(io);
 alloc_new:
 	if (io->bio == NULL) {
-		int bio_blocks = MAX_BIO_BLOCKS(max_hw_blocks(sbi));
+		int bio_blocks = MAX_BIO_BLOCKS(sbi);
 
 		io->bio = __bio_alloc(sbi, blk_addr, bio_blocks, is_read);
 		io->fio = *fio;
@@ -572,9 +572,11 @@ put_err:
 static int __allocate_data_block(struct dnode_of_data *dn)
 {
 	struct f2fs_sb_info *sbi = F2FS_I_SB(dn->inode);
+	struct f2fs_inode_info *fi = F2FS_I(dn->inode);
 	struct f2fs_summary sum;
 	block_t new_blkaddr;
 	struct node_info ni;
+	pgoff_t fofs;
 	int type;
 
 	if (unlikely(is_inode_flag_set(F2FS_I(dn->inode), FI_NO_ALLOC)))
@@ -596,6 +598,12 @@ static int __allocate_data_block(struct dnode_of_data *dn)
 	set_inode_flag(F2FS_I(dn->inode), FI_NO_EXTENT);
 	update_extent_cache(new_blkaddr, dn);
 	clear_inode_flag(F2FS_I(dn->inode), FI_NO_EXTENT);
+
+	/* update i_size */
+	fofs = start_bidx_of_node(ofs_of_node(dn->node_page), fi) +
+							dn->ofs_in_node;
+	if (i_size_read(dn->inode) < ((fofs + 1) << PAGE_CACHE_SHIFT))
+		i_size_write(dn->inode, ((fofs + 1) << PAGE_CACHE_SHIFT));
 
 	dn->data_blkaddr = new_blkaddr;
 	return 0;
@@ -843,7 +851,7 @@ write:
 	if (unlikely(f2fs_cp_error(sbi))) {
 		SetPageError(page);
 		unlock_page(page);
-		return 0;
+		goto out;
 	}
 
 	if (!wbc->for_reclaim)
@@ -863,7 +871,7 @@ done:
 
 	clear_cold_data(page);
 out:
-	inode_dec_dirty_dents(inode);
+	inode_dec_dirty_pages(inode);
 	unlock_page(page);
 	if (need_balance_fs)
 		f2fs_balance_fs(sbi);
@@ -901,7 +909,7 @@ static int f2fs_write_data_pages(struct address_space *mapping,
 		return 0;
 
 	if (S_ISDIR(inode->i_mode) && wbc->sync_mode == WB_SYNC_NONE &&
-			get_dirty_dents(inode) < nr_pages_to_skip(sbi, DATA) &&
+			get_dirty_pages(inode) < nr_pages_to_skip(sbi, DATA) &&
 			available_free_memory(sbi, DIRTY_DENTS))
 		goto skip_write;
 
@@ -923,7 +931,7 @@ static int f2fs_write_data_pages(struct address_space *mapping,
 	return ret;
 
 skip_write:
-	wbc->pages_skipped += get_dirty_dents(inode);
+	wbc->pages_skipped += get_dirty_pages(inode);
 	return 0;
 }
 
@@ -1044,7 +1052,10 @@ static int f2fs_write_end(struct file *file,
 
 	trace_f2fs_write_end(inode, pos, len, copied);
 
-	set_page_dirty(page);
+	if (f2fs_is_atomic_file(inode) || f2fs_is_volatile_file(inode))
+		register_inmem_page(inode, page);
+	else
+		set_page_dirty(page);
 
 	if (pos + copied > i_size_read(inode)) {
 		i_size_write(inode, pos + copied);
@@ -1092,9 +1103,6 @@ static ssize_t f2fs_direct_IO(int rw, struct kiocb *iocb,
 	if (check_direct_IO(inode, rw, iov, offset, nr_segs))
 		return 0;
 
-	/* clear fsync mark to recover these blocks */
-	fsync_mark_clear(F2FS_I_SB(inode), inode->i_ino);
-
 	trace_f2fs_direct_IO_enter(inode, offset, count, rw);
 
 	err = blockdev_direct_IO(rw, iocb, inode, iov, offset, nr_segs,
@@ -1110,8 +1118,12 @@ static ssize_t f2fs_direct_IO(int rw, struct kiocb *iocb,
 static void f2fs_invalidate_data_page(struct page *page, unsigned long offset)
 {
 	struct inode *inode = page->mapping->host;
+
+	if (offset % PAGE_CACHE_SIZE)
+		return;
+
 	if (PageDirty(page))
-		inode_dec_dirty_dents(inode);
+		inode_dec_dirty_pages(inode);
 	ClearPagePrivate(page);
 }
 
@@ -1133,7 +1145,7 @@ static int f2fs_set_data_page_dirty(struct page *page)
 
 	if (!PageDirty(page)) {
 		__set_page_dirty_nobuffers(page);
-		set_dirty_dir_page(inode, page);
+		update_dirty_page(inode, page);
 		return 1;
 	}
 	return 0;
