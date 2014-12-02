@@ -801,15 +801,19 @@ static void touch_input_report(struct lge_touch_data *ts)
 	input_sync(ts->input_dev);
 }
 
-struct double_tap_to_wake {
+static struct double_tap_to_wake {
 	unsigned long touch_time;
 	unsigned long window_time;
 	unsigned long sample_time_ms;
 	unsigned int touches;
 	struct input_dev *input_device;
+} wake = {
+	.touch_time = 0,
+	.window_time = 0,
+	.sample_time_ms = 100,
+	.touches = 0,
 };
 
-static struct double_tap_to_wake wake;
 
 void wake_up_display(struct input_dev *input_dev)
 {
