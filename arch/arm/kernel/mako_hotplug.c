@@ -249,9 +249,9 @@ reschedule:
 	 * This reschedule is specially for cases where the user wants to
 	 * run either dual-core or quad-core permanently - for that reason
 	 * we don't need to run this work every 100ms, but rather just
-	 * once every second
+	 * once every 2 seconds
 	 */
-	queue_delayed_work(wq, &decide_hotplug, HZ);
+	queue_delayed_work(wq, &decide_hotplug, HZ * 2);
 }
 
 static void mako_hotplug_suspend(struct work_struct *work)
