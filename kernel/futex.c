@@ -1731,7 +1731,7 @@ static inline struct futex_hash_bucket *queue_lock(struct futex_q *q)
 }
 
 static inline void
-queue_unlock(struct futex_hash_bucket *hb)
+queue_unlock(struct futex_q *q, struct futex_hash_bucket *hb)
 	__releases(&hb->lock)
 {
 	spin_unlock(&hb->lock);
@@ -2104,7 +2104,7 @@ retry_private:
 	ret = get_futex_value_locked(&uval, uaddr);
 
 	if (ret) {
-		queue_unlock(*hb);
+		queue_unlock(q, *hb);
 
 		ret = get_user(uval, uaddr);
 		if (ret)
@@ -2118,7 +2118,7 @@ retry_private:
 	}
 
 	if (uval != val) {
-		queue_unlock(*hb);
+		queue_unlock(q, *hb);
 		ret = -EWOULDBLOCK;
 	}
 
@@ -2266,7 +2266,7 @@ retry_private:
 			 * Task is exiting and we just wait for the
 			 * exit to complete.
 			 */
-			queue_unlock(hb);
+			queue_unlock(&q, hb);
 			put_futex_key(&q.key);
 			cond_resched();
 			goto retry;
@@ -2318,7 +2318,7 @@ retry_private:
 	goto out_put_key;
 
 out_unlock_put_key:
-	queue_unlock(hb);
+	queue_unlock(&q, hb);
 
 out_put_key:
 	put_futex_key(&q.key);
@@ -2328,7 +2328,7 @@ out:
 	return ret != -EINTR ? ret : -ERESTARTNOINTR;
 
 uaddr_faulted:
-	queue_unlock(hb);
+	queue_unlock(&q, hb);
 
 	ret = fault_in_user_writeable(uaddr);
 	if (ret)
