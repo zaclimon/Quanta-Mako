@@ -31,7 +31,7 @@ fi
 
 
 cd $ANYKERNEL_DIRECTORY
-git checkout mako-5.0
+git checkout mako-5.1
 
 cd $KERNEL_DIRECTORY
 
