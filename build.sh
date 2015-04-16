@@ -41,6 +41,9 @@ if [ -e zip/*.zip ] ; then
 rm -rf zip/*
 fi
 
+# Strangely, the kernel after compiling, auto-increments the version by 1. Let's revert that by decreasing the version value also by 1.
+let "VERSION -= 1"
+
 echo $VERSION > .version
 make quanta_defconfig
 make -j$JOBS
