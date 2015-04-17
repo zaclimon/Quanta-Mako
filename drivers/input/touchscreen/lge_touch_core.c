@@ -31,7 +31,6 @@
 #include <linux/version.h>
 #include <linux/atomic.h>
 #include <linux/gpio.h>
-#include <linux/input/pmic8xxx-pwrkey.h>
 
 #include <linux/input/lge_touch_core.h>
 
@@ -61,9 +60,6 @@ module_param(doubletap_to_wake, bool, 0664);
 
 unsigned long doubletap_delay = 1000;
 module_param(doubletap_delay, ulong, 0664);
-
-bool doubletap_pwrkey_suspend = false;
-module_param(doubletap_pwrkey_suspend, bool, 0664);
 
 #define LGE_TOUCH_ATTR(_name, _mode, _show, _store)               \
 	struct lge_touch_attribute lge_touch_attr_##_name =       \
@@ -2082,8 +2078,7 @@ static void touch_early_suspend(struct early_suspend *h)
 		return;
 	}
 
-	if (doubletap_to_wake &&
-			(!doubletap_pwrkey_suspend || !pwrkey_pressed)) {
+	if (doubletap_to_wake) {
 		enable_irq_wake(ts->client->irq);
 	} else {
 		if (ts->pdata->role->operation_mode == INTERRUPT_MODE)
@@ -2137,7 +2132,6 @@ static void touch_late_resume(struct early_suspend *h)
 		else
 			queue_delayed_work(touch_wq, &ts->work_init, 0);
 	}
-	pwrkey_pressed = false;
 }
 #endif
 
@@ -2225,3 +2219,4 @@ void touch_driver_unregister(void)
 	if (touch_wq)
 		destroy_workqueue(touch_wq);
 }
+
