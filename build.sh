@@ -15,18 +15,18 @@ ANYKERNEL_DIRECTORY="$HOME/anykernel_msm"
 JOBS=`grep -c "processor" /proc/cpuinfo`
 # Verify if the CM patches has already been applied. We don't want to apply them again if the compiling is stopped
 CM_CHECK=`grep -c "case MDP_YCBYCR_H2V1:" drivers/video/msm/mdp4_overlay.c`
-VERSION=1
+VERSION=2
 
 
 if [[ "$1" =~ "cm" || "$1" =~ "CM" ]] ; then
-kernelzip="Quanta-v$VERSION-CM.zip"
+kernelzip="Quanta-V$VERSION-CM.zip"
 
 if [ $CM_CHECK -eq 0 ] ; then
 git am CM/*
 fi
 
 else
-kernelzip="Quanta-v$VERSION.zip"
+kernelzip="Quanta-V$VERSION.zip"
 fi
 
 
