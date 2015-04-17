@@ -53,7 +53,6 @@ bool is_touching;
 u64 freq_boosted_time;
 
 bool suspended = false;
-static bool touch_suspended = false;
 
 bool doubletap_to_wake = false;
 module_param(doubletap_to_wake, bool, 0664);
@@ -2090,7 +2089,6 @@ static void touch_early_suspend(struct early_suspend *h)
 
 		touch_power_cntl(ts, ts->pdata->role->suspend_pwr);
 
-		touch_suspended = true;
 	}
 }
 
@@ -2108,10 +2106,9 @@ static void touch_late_resume(struct early_suspend *h)
 		return;
 	}
 
-	if (!touch_suspended) {
+	if (doubletap_to_wake) {
 		disable_irq_wake(ts->client->irq);
 	} else {
-		touch_suspended = false;
 		touch_power_cntl(ts, ts->pdata->role->resume_pwr);
 
 		if (ts->pdata->role->operation_mode == INTERRUPT_MODE)
