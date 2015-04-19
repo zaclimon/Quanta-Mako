@@ -15,7 +15,7 @@ ANYKERNEL_DIRECTORY="$HOME/anykernel_msm"
 JOBS=`grep -c "processor" /proc/cpuinfo`
 # Verify if the CM patches has already been applied. We don't want to apply them again if the compiling is stopped
 CM_CHECK=`grep -c "case MDP_YCBYCR_H2V1:" drivers/video/msm/mdp4_overlay.c`
-VERSION=2
+VERSION=3
 
 
 if [[ "$1" =~ "cm" || "$1" =~ "CM" ]] ; then
