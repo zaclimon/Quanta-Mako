@@ -15,6 +15,7 @@ ANYKERNEL_DIRECTORY="$HOME/anykernel_msm"
 JOBS=`grep -c "processor" /proc/cpuinfo`
 # Verify if the CM patches has already been applied. We don't want to apply them again if the compiling is stopped
 CM_CHECK=`grep -c "case MDP_YCBYCR_H2V1:" drivers/video/msm/mdp4_overlay.c`
+DEVICE="Mako"
 VERSION=7
 
 
@@ -32,7 +33,7 @@ fi
 
 # Set the packaging information here. Specify if CM or AOSP.
 if [[ "$1" =~ "cm" || "$1" =~ "CM" ]] ; then
-kernelzip="Quanta-V$VERSION-CM.zip"
+kernelzip="Quanta-V$VERSION-CM-$DEVICE.zip"
 
 # Apply the CM patches if the variant specified is CM.
 if [ $CM_CHECK -eq 0 ] ; then
@@ -40,7 +41,7 @@ git am CM/*
 fi
 
 else
-kernelzip="Quanta-V$VERSION.zip"
+kernelzip="Quanta-V$VERSION-$DEVICE.zip"
 fi
 
 # Ensure that we're on the correct Anykernel branch
