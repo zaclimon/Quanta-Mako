@@ -1994,6 +1994,7 @@ static int adreno_start(struct kgsl_device *device, int priority)
 	mutex_lock(&device->mutex);
 
 	return _status;
+}
 
 /**
  * adreno_vbif_clear_pending_transactions() - Clear transactions in VBIF pipe
@@ -2019,9 +2020,6 @@ static void adreno_vbif_clear_pending_transactions(struct kgsl_device *device)
 	}
 	adreno_writereg(adreno_dev, ADRENO_REG_VBIF_XIN_HALT_CTRL0, 0);
 }
-
-}
->>>>>>> 2d3589c... msm: kgsl: Allow GPU start to run in a high priority queue
 
 static int adreno_stop(struct kgsl_device *device)
 {
