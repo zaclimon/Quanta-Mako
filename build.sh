@@ -23,7 +23,7 @@ VERSION=7
 function download_anykernel() {
 echo "Anykernel hasn't been found in $ANYKERNEL_DIRECTORY."
 echo "Downloading it..."
-git clone https://github.com/zaclimon/anykernel_msm -b mako-5.1 $ANYKERNEL_DIRECTORY
+git clone https://github.com/zaclimon/anykernel_msm -b mako-6.0 $ANYKERNEL_DIRECTORY
 } 
 
 # Download Anykernel if not found.
@@ -46,7 +46,7 @@ fi
 
 # Ensure that we're on the correct Anykernel branch
 cd $ANYKERNEL_DIRECTORY
-git checkout mako-5.1
+git checkout mako-6.0
 
 cd $KERNEL_DIRECTORY
 
