@@ -16,7 +16,7 @@ JOBS=`grep -c "processor" /proc/cpuinfo`
 # Verify if the CM patches has already been applied. We don't want to apply them again if the compiling is stopped
 CM_CHECK=`grep -c "case MDP_YCBYCR_H2V1:" drivers/video/msm/mdp4_overlay.c`
 DEVICE="Mako"
-VERSION=7
+VERSION=8
 
 
 # Function responsible for download Anykernel if it's not found by the ANYKERNEL_DIRECTORY variable.
