@@ -1785,6 +1785,7 @@ static ssize_t f2fs_direct_IO(int rw, struct kiocb *iocb,
 
 	trace_f2fs_direct_IO_enter(inode, offset, count, rw);
 
+	down_read(&F2FS_I(inode)->dio_rwsem[rw]);
 #ifdef CONFIG_AIO_OPTIMIZATION
 	err = blockdev_direct_IO(rw, iocb, inode, iter, offset,
 							get_data_block_dio);
@@ -1792,7 +1793,7 @@ static ssize_t f2fs_direct_IO(int rw, struct kiocb *iocb,
 	err = blockdev_direct_IO(rw, iocb, inode, iov, offset, nr_segs,
 							get_data_block_dio);
 #endif
-
+	up_read(&F2FS_I(inode)->dio_rwsem[rw]);
 	if (err < 0 && (rw & WRITE)) {
 		if (err > 0)
 			set_inode_flag(inode, FI_UPDATE_WRITE);
