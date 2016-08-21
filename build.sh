@@ -9,7 +9,7 @@
 #
 #
 
-export CROSS_COMPILE="$HOME/uber-arm-eabi-5.3/bin/arm-eabi-"
+export CROSS_COMPILE="$HOME/uber-arm-eabi-5.x/bin/arm-eabi-"
 KERNEL_DIRECTORY="$HOME/Quanta-Mako"
 ANYKERNEL_DIRECTORY="$HOME/anykernel_msm"
 JOBS=`grep -c "processor" /proc/cpuinfo`
